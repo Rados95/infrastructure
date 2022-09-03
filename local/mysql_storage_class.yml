@@ -1,0 +1,10 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-sc
+provisioner: docker.io/hostpath
+volumeBindingMode: Immediate
+parameters:
+  type: gp2 # This configures SSDs (recommended).
+allowVolumeExpansion: true
+reclaimPolicy: Retain
