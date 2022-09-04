@@ -5,7 +5,7 @@ metadata:
   labels:
     app: product-service
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: product-service
@@ -14,10 +14,45 @@ spec:
       labels:
         app: product-service
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - product-service
+                topologyKey: "kubernetes.io/hostname"
       containers:
         - name: product-service
-          image: canister.io:5000/akibrat95/product-service:latest
+          image: cloud.canister.io:5000/akibrat95/product-service:latest
           ports:
             - containerPort: 8082
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8082
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8082
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: backend-user
+                  key: backend-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-user
+                  key: backend-password
       imagePullSecrets:
         - name: canistercred

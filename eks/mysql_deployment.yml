@@ -12,18 +12,38 @@ spec:
       labels:
         app: mysql
     spec:
+      nodeSelector:
+        node-instance-type: db-optimized
+      tolerations:
+        - key: db-node
+          operator: Exists
+          effect: NoSchedule
       containers:
         - name: mysql
-          image: mysql:8
+          # mysql:8
+          image: mysql@sha256:713a3c26c5130f06fe17b16b314f1058f9efeb07330164da0e81d97d5a57d50b
           securityContext:
             runAsUser: 1000
             allowPrivilegeEscalation: false
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: nemasifre
+              valueFrom:
+                secretKeyRef:
+                  name: dbpass
+                  key: dbpass
           ports:
             - containerPort: 3306
               name: mysql
+          livenessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 3306
+            initialDelaySeconds: 20
+            periodSeconds: 10
           volumeMounts:
             - name: mysql-persistent-storage
               mountPath: /data

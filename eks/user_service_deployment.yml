@@ -5,7 +5,7 @@ metadata:
   labels:
     app: user-service
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: user-service
@@ -14,11 +14,36 @@ spec:
       labels:
         app: user-service
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - user-service
+                topologyKey: "kubernetes.io/hostname"
       containers:
         - name: user-service
           image: cloud.canister.io:5000/akibrat95/user-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8081
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
           env:
             - name: DB_USERNAME
               valueFrom:
