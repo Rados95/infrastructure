@@ -19,5 +19,16 @@ spec:
           image: cloud.canister.io:5000/akibrat95/user-service:latest
           ports:
             - containerPort: 8081
+          env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: backend-user
+                  key: backend-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-user
+                  key: backend-password
       imagePullSecrets:
         - name: canistercred
